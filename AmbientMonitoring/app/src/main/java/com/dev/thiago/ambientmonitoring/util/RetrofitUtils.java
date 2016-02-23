@@ -16,7 +16,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class RetrofitUtils {
 
-    public static final String BASE_URL = "https://floating-fortress-75504.herokuapp.com/";
+    public static final String BASE_URL = "http://emisvx-ambient-monitoring.herokuapp.com/";
 
     public static Retrofit getRetrofit() {
 

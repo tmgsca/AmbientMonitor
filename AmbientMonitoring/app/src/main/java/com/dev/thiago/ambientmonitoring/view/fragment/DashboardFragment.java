@@ -83,9 +83,9 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
         Measure measure = new Measure();
 
-        measure.setHumidity(currentHumidity);
+        measure.setHumidity((float )20.0);
 
-        measure.setTemperature(currentTemperature);
+        measure.setTemperature((float) 41);
 
         Call<Void> call = service.postMeasure(auth, session.getUser().getId(), roomId, measure);
 
