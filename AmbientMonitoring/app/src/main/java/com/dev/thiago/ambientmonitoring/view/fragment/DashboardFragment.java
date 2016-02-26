@@ -21,16 +21,20 @@ import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.RetrofitUtils;
 import com.dev.thiago.ambientmonitoring.util.WeatherUtils;
 
+import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import java.io.IOException;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import io.realm.Realm;
+import me.grantland.widget.AutofitHelper;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -43,6 +47,9 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
     @ViewById
     TextView dashboardTemperatureTextView;
+
+    @ViewById
+    TextView dashboardTemperatureDecimalTextView;
 
     @ViewById
     TextView dashboardHumidityTextView;
@@ -78,6 +85,11 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
     Integer roomId;
 
+    @AfterViews
+    void afterViews() {
+        AutofitHelper.create(dashboardHumidityTextView);
+    }
+
     @Override
     public void onResume() {
 
@@ -98,16 +110,22 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
             public void run() {
                 sendMeasureData();
             }
-        }, 0, 5000);
+        }, 10000, 5000);
 
         weatherTimer = new Timer();
-
         weatherTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 updateWeather();
             }
-        }, 0, 60000);
+        }, 60000, 60000);
+
+        weatherTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                updateWeather();
+            }
+        }, 0);
 
         sensorManager.registerListener(this, temperatureSensor, SensorManager.SENSOR_DELAY_UI);
 
@@ -227,14 +245,33 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
-        numberFormat.setMaximumFractionDigits(2);
-        numberFormat.setMinimumFractionDigits(2);
+        numberFormat.setMaximumFractionDigits(0);
+        numberFormat.setMinimumFractionDigits(0);
 
         if (event.sensor.equals(temperatureSensor)) {
 
             Float temperature = event.values[0];
 
-            dashboardTemperatureTextView.setText(numberFormat.format(temperature) + "ºC");
+            DecimalFormat decimalFormat = new DecimalFormat("##.#");
+
+            decimalFormat.setRoundingMode(RoundingMode.DOWN);
+
+            Integer roundedTemp = (int) Math.floor(temperature.doubleValue());
+
+            dashboardTemperatureTextView.setText(roundedTemp.toString() + ".");
+
+            String decimal = String.valueOf(event.values[0]);
+
+            try {
+
+                decimal = decimal.substring(decimal.indexOf(".")).substring(1);
+
+                dashboardTemperatureDecimalTextView.setText(decimal);
+
+            } catch (Exception e) {
+
+                dashboardTemperatureDecimalTextView.setText("0");
+            }
 
             currentTemperature = temperature;
 
