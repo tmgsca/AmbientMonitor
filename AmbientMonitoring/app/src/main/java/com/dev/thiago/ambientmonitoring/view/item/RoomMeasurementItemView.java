@@ -11,6 +11,8 @@ import com.dev.thiago.ambientmonitoring.model.Room;
 import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 
+import java.text.NumberFormat;
+
 /**
  * Created by thiago on 23/02/16.
  */
@@ -32,9 +34,14 @@ public class RoomMeasurementItemView extends LinearLayout {
 
         if (measure != null) {
 
-            itemRoomMeasurementTemperatureTextView.setText(measure.getTemperature() + "ºC");
+            NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
-            itemRoomMeasurementHumidityTextView.setText(measure.getHumidity() + "%");
+            numberFormat.setMaximumFractionDigits(2);
+            numberFormat.setMinimumFractionDigits(2);
+
+            itemRoomMeasurementTemperatureTextView.setText(numberFormat.format(measure.getTemperature()) + "ºC");
+
+            itemRoomMeasurementHumidityTextView.setText(numberFormat.format(measure.getHumidity()) + "%");
         }
     }
 

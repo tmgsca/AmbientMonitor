@@ -5,31 +5,96 @@
     tools:context=".view.fragment.WelcomeMenuFragment">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/welcome_app_name_text_view"
         android:layout_gravity="center_horizontal"
         android:gravity="center"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="@dimen/activity_horizontal_margin"
+        android:weightSum="2">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="1"
+            android:background="@color/colorButtonNormal"
+            android:elevation="3dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/measure_divider"
+                android:gravity="center_vertical"
+                android:lineSpacingExtra="2dp"
+                android:paddingBottom="8dp"
+                android:paddingEnd="8dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingStart="8dp"
+                android:text="A measurer is responsible for tracking temperature and humidity of a room, sending it's data to the server every 5 seconds. The measurer interface also shows when the room's temperature is above or below the limit set for the current season."
+                android:textColor="@color/secondary_text" />
+
+            <View
+                android:id="@+id/measure_divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_above="@+id/measurer_button"
+                android:background="@color/background" />
+
+            <Button
+                android:id="@+id/measurer_button"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_alignParentBottom="true"
+                android:elevation="0dp"
+                android:gravity="bottom"
+                android:text="This is a measurer"
+                android:textColor="@color/measurerColor" />
 
 
-        <Button
-            android:id="@+id/measurer_button"
-            android:layout_width="250dp"
-            android:layout_height="60dp"
-            android:backgroundTint="@color/primary_dark"
-            android:backgroundTintMode="src_atop"
-            android:text="MEASURER"
-            android:textColor="@android:color/white" />
+        </RelativeLayout>
 
-        <Button
-            android:id="@+id/client_button"
-            android:layout_width="250dp"
-            android:layout_height="60dp"
-            android:layout_marginTop="5dp"
-            android:backgroundTint="@color/primary_dark"
-            android:text="Client"
-            android:textColor="@android:color/white" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:background="@color/colorButtonNormal"
+            android:elevation="3dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/client_divider"
+                android:gravity="center_vertical"
+                android:lineSpacingExtra="2dp"
+                android:paddingBottom="8dp"
+                android:paddingEnd="8dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingStart="8dp"
+                android:text="The client's interface receives the data of all tracked rooms every 5 seconds and is responsible for managing the measuring devices. The client also receives notifications when temperatures are below or above the limit set for the current season."
+                android:textColor="@color/secondary_text" />
+
+            <View
+                android:id="@+id/client_divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_above="@+id/client_button"
+                android:background="@color/background" />
+
+            <Button
+                android:id="@+id/client_button"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_alignParentBottom="true"
+                android:elevation="0dp"
+                android:gravity="bottom"
+                android:text="This is a client"
+                android:textColor="@color/clientColor" />
+        </RelativeLayout>
+
 
     </LinearLayout>
 </FrameLayout>

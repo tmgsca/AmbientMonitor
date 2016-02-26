@@ -6,28 +6,26 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.dev.thiago.ambientmonitoring.R;
 import com.dev.thiago.ambientmonitoring.model.Measure;
+import com.dev.thiago.ambientmonitoring.model.Room;
 import com.dev.thiago.ambientmonitoring.model.Session;
 import com.dev.thiago.ambientmonitoring.service.MeasureService;
 import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.RetrofitUtils;
 
 import org.androidannotations.annotations.EFragment;
-import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import io.realm.Realm;
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 @EFragment(R.layout.fragment_dashboard)
 public class DashboardFragment extends GenericFragment implements SensorEventListener {
@@ -57,6 +55,12 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
         roomId = MeasurerUtils.getTrackedRoomId(getActivity());
 
+        Realm realm = Realm.getInstance(getActivity());
+
+        Room room = realm.where(Room.class).equalTo("id", roomId).findFirst();
+
+        setTitle(room.getName());
+
         timer = new Timer();
 
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -83,9 +87,9 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
         Measure measure = new Measure();
 
-        measure.setHumidity((float )20.0);
+        measure.setHumidity(currentHumidity);
 
-        measure.setTemperature((float) 41);
+        measure.setTemperature(currentTemperature);
 
         Call<Void> call = service.postMeasure(auth, session.getUser().getId(), roomId, measure);
 
@@ -121,11 +125,16 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
     @Override
     public void onSensorChanged(SensorEvent event) {
 
+        NumberFormat numberFormat = NumberFormat.getNumberInstance();
+
+        numberFormat.setMaximumFractionDigits(2);
+        numberFormat.setMinimumFractionDigits(2);
+
         if (event.sensor.equals(temperatureSensor)) {
 
             Float temperature = event.values[0];
 
-            dashboardTemperatureTextView.setText(temperature.toString() + "ºC");
+            dashboardTemperatureTextView.setText(numberFormat.format(temperature) + "ºC");
 
             currentTemperature = temperature;
 
@@ -133,7 +142,7 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
             Float humidity = event.values[0];
 
-            dashboardHumidityTextView.setText(humidity.toString() + "%");
+            dashboardHumidityTextView.setText(numberFormat.format(humidity) + "%");
 
             currentHumidity = humidity;
         }

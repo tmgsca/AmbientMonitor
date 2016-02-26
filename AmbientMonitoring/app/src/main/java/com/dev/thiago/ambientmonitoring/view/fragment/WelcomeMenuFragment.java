@@ -17,8 +17,8 @@ public class WelcomeMenuFragment extends GenericFragment {
 
     @AfterViews
     void afterViews() {
-
         activity = (MainActivity) getActivity();
+        setTitle("What is this device?");
     }
 
     @Click

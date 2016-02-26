@@ -2,6 +2,8 @@ package com.dev.thiago.ambientmonitoring.view.fragment;
 
 
 import android.app.ProgressDialog;
+import android.graphics.Typeface;
+import android.text.method.PasswordTransformationMethod;
 import android.widget.EditText;
 
 import com.dev.thiago.ambientmonitoring.R;
@@ -27,10 +29,19 @@ public class WelcomeFragment extends GenericFragment {
 
     MainActivity activity;
 
+    @Override
+    public void onResume() {
+        isHideActionBar = true;
+        super.onResume();
+    }
+
     @AfterViews
     void afterViews() {
 
         activity = (MainActivity) getActivity();
+
+        loginPasswordEditText.setTypeface(Typeface.DEFAULT);
+        loginPasswordEditText.setTransformationMethod(new PasswordTransformationMethod());
     }
 
     @ViewById

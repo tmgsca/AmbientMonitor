@@ -30,7 +30,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 @EFragment(R.layout.fragment_rooms)
-public class RoomsFragment extends Fragment implements DialogInterface.OnClickListener {
+public class RoomsFragment extends GenericFragment implements DialogInterface.OnClickListener {
 
     @ViewById
     ListView roomsListView;
@@ -48,6 +48,8 @@ public class RoomsFragment extends Fragment implements DialogInterface.OnClickLi
     void afterViews() {
 
         activity = (MainActivity) getActivity();
+
+        setTitle("Choose a room to track");
 
         roomsListView.setAdapter(adapter);
 

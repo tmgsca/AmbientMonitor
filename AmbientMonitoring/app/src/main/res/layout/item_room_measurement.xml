@@ -29,7 +29,7 @@
             android:layout_height="18dp"
             android:layout_marginLeft="-2dp"
             android:scaleType="centerInside"
-            android:src="@drawable/thermometer"
+            android:src="@drawable/thermometer_small"
             android:tint="@color/secondary_text" />
 
         <TextView
@@ -47,7 +47,7 @@
             android:layout_marginLeft="10dp"
             android:layout_marginStart="10dp"
             android:scaleType="centerInside"
-            android:src="@drawable/humidity"
+            android:src="@drawable/humidity_small"
             android:tint="@color/secondary_text" />
 
         <TextView
