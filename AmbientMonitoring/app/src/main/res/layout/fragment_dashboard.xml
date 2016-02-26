@@ -12,7 +12,7 @@
     <RelativeLayout
         android:id="@+id/dashboard_gauge_layout"
         android:layout_width="wrap_content"
-        android:layout_height="400dp"
+        android:layout_height="350dp"
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp">
@@ -90,44 +90,133 @@
 
     </RelativeLayout>
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+
+    <View
+        android:id="@+id/dashboard_divider"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
         android:layout_below="@+id/dashboard_gauge_layout"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="10dp"
+        android:background="@color/colorButtonNormal" />
 
-        <!--<ImageView-->
-        <!--android:id="@+id/dashboard_weather_image"-->
-        <!--android:layout_width="70dp"-->
-        <!--android:layout_height="70dp"-->
-        <!--android:scaleType="centerInside"-->
-        <!--android:src="@drawable/filled_circle" />-->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/dashboard_divider"
+        android:layout_marginTop="5dp"
+        android:paddingTop="5dp">
 
-        <!--<LinearLayout-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_centerVertical="true"-->
-        <!--android:layout_marginLeft="10dp"-->
-        <!--android:layout_toRightOf="@id/dashboard_weather_image"-->
-        <!--android:orientation="vertical">-->
+        <TextView
+            android:id="@+id/dashboard_weather_city_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:text="Unknown city"
+            android:textColor="@color/primary_text"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/dashboard_weather_current_weather"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/dashboard_weather_city_name"
+            android:layout_below="@id/dashboard_weather_city_name"
+            android:layout_marginTop="1dp"
+            android:text="-"
+            android:textColor="@color/primary_text" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/dashboard_weather_current_temp"
+            android:layout_alignTop="@+id/dashboard_weather_current_temp"
+            android:layout_marginLeft="20dp"
+            android:layout_toRightOf="@+id/dashboard_weather_current_temp"
+            android:gravity="right">
+
+            <LinearLayout
+                android:id="@+id/dashboard_weather_max_temp_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="top|center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Max"
+                    android:textColor="@color/primary_text" />
+
+                <TextView
+                    android:id="@+id/dashboard_weather_max_temp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textColor="@color/primary_text"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_toRightOf="@+id/dashboard_weather_max_temp_layout"
+                android:gravity="top|center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Min"
+                    android:textColor="@color/primary_text" />
+
+                <TextView
+                    android:id="@+id/dashboard_weather_min_temp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textColor="@color/primary_text"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
 
 
-        <!--<TextView-->
-        <!--android:id="@+id/dashboard_weather_temperature"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginBottom="2dp"-->
-        <!--android:text="20ºC"-->
-        <!--android:textSize="22sp" />-->
+        </RelativeLayout>
 
-        <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginTop="2dp"-->
-        <!--android:text="35%"-->
-        <!--android:textSize="22sp" />-->
-        <!--</LinearLayout>-->
+        <TextView
+            android:id="@+id/dashboard_weather_current_temp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/dashboard_weather_current_weather"
+            android:layout_marginTop="6dp"
+            android:gravity="left"
+            android:text="-"
+            android:textColor="@color/primary_text"
+            android:textSize="30sp" />
 
+        <TextView
+            android:id="@+id/dashboard_weather_current_humidity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/dashboard_weather_current_temp"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@+id/dashboard_weather_current_temp"
+            android:layout_marginTop="2dp"
+            android:gravity="bottom|left"
+            android:text="-"
+            android:textColor="@color/primary_text"
+            android:textSize="26sp" />
+
+        <TextView
+            android:id="@+id/dashboard_weather_updated"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/dashboard_weather_current_humidity"
+            android:layout_centerHorizontal="true"
+            android:fontFamily="sans-serif-condensed"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
     </RelativeLayout>
 
