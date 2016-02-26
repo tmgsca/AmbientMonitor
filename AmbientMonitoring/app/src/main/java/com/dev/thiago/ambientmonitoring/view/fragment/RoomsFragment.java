@@ -2,26 +2,29 @@ package com.dev.thiago.ambientmonitoring.view.fragment;
 
 
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.dev.thiago.ambientmonitoring.R;
 import com.dev.thiago.ambientmonitoring.model.Room;
-import com.dev.thiago.ambientmonitoring.model.Session;
 import com.dev.thiago.ambientmonitoring.service.RoomService;
 import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.RetrofitUtils;
+import com.dev.thiago.ambientmonitoring.util.SessionUtils;
 import com.dev.thiago.ambientmonitoring.view.MainActivity;
 import com.dev.thiago.ambientmonitoring.view.adapter.RoomsListAdapter;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ItemClick;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
+import java.io.IOException;
 import java.util.List;
 
 import io.realm.Realm;
@@ -35,7 +38,7 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
     @ViewById
     ListView roomsListView;
 
-    ProgressDialog dialog;
+    ProgressDialog progressDialog;
 
     @Bean
     RoomsListAdapter adapter;
@@ -49,7 +52,7 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
         activity = (MainActivity) getActivity();
 
-        setTitle("Choose a room to track");
+        setTitle("Choose a room to attach");
 
         roomsListView.setAdapter(adapter);
 
@@ -60,23 +63,19 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
         RoomService service = RetrofitUtils.getRetrofit().create(RoomService.class);
 
-        Realm realm = Realm.getInstance(getActivity());
+        String auth = SessionUtils.getAuthHeader(getActivity());
 
-        Session session = realm.allObjects(Session.class).first();
-
-        String auth = "Token token=" + session.getToken();
-
-        Integer userId = session.getUser().getId();
+        Integer userId = SessionUtils.getLoggedUser(getActivity()).getId();
 
         Call<List<Room>> call = service.getRooms(auth, userId);
 
-        dialog = new ProgressDialog(getActivity());
+        progressDialog = new ProgressDialog(getActivity());
 
-        dialog.setMessage("Loading rooms...");
+        progressDialog.setMessage("Loading rooms...");
 
         if (adapter == null || adapter.getCount() == 0) {
 
-            dialog.show();
+            progressDialog.show();
         }
 
         call.enqueue(new Callback<List<Room>>() {
@@ -102,7 +101,7 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
     void requestRoomsSuccessful(Response<List<Room>> response) {
 
-        dialog.hide();
+        progressDialog.hide();
 
         Realm realm = Realm.getInstance(getActivity());
 
@@ -117,7 +116,7 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
     void requestRoomsFailed(Response<List<Room>> response) {
 
-        dialog.hide();
+        progressDialog.hide();
     }
 
     @ItemClick
@@ -125,8 +124,16 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
         clickedRoom = room;
 
+        String message;
+
+        if (room.getIsTracked()) {
+            message = room.getName() + " is already attached to another device. Do you wish to remove the other device and attach to the current one?";
+        } else {
+            message = "Do you want to start tracking " + room.getName() + "?";
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage("Do you want to start tracking " + room.getName() + "?");
+        builder.setMessage(message);
         builder.setNegativeButton("Cancel", this);
         builder.setPositiveButton("Yes", this);
         builder.show();
@@ -139,14 +146,103 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
             case DialogInterface.BUTTON_POSITIVE:
 
-                MeasurerUtils.setIsAttached(activity, true);
-                MeasurerUtils.setTrackedRoomId(activity, clickedRoom.getId());
+                dialog.dismiss();
 
-                activity.showDashboardFragment();
+                progressDialog.setMessage("Waiting for server...");
+
+                progressDialog.show();
+
+                attach(clickedRoom.getIsTracked(), clickedRoom.getId());
 
             case DialogInterface.BUTTON_NEGATIVE:
 
                 dialog.dismiss();
+        }
+    }
+
+    @Background
+    void attach(Boolean detach, Integer roomId) {
+
+        final RoomService service = RetrofitUtils.getRetrofit().create(RoomService.class);
+        final String auth = SessionUtils.getAuthHeader(getActivity());
+        final Integer userId = SessionUtils.getLoggedUser(getActivity()).getId();
+
+        if (detach) {
+
+            final Boolean untrackIsSuccess = untrackRoom(service, auth, userId, roomId);
+
+            if (!untrackIsSuccess) {
+
+                requestFailed("Could not detach the other device from the room");
+
+                return;
+            }
+        }
+
+        if (trackRoom(service, auth, userId, roomId)) {
+
+            showDashboardFragment();
+
+        } else {
+
+            requestFailed("Could not attach this device to the room");
+        }
+    }
+
+    @UiThread
+    void requestFailed(String message) {
+
+        progressDialog.dismiss();
+
+        if (message != null)
+            Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
+    }
+
+    @UiThread
+    void showDashboardFragment() {
+
+        MeasurerUtils.setIsAttached(activity, true);
+
+        MeasurerUtils.setTrackedRoomId(activity, clickedRoom.getId());
+
+        progressDialog.dismiss();
+
+        activity.showDashboardFragment();
+    }
+
+    private Boolean untrackRoom(RoomService service, String auth, Integer userId, Integer roomId) {
+
+        Call<Void> call = service.untrackRoom(auth, userId, roomId);
+
+        try {
+
+            Response<Void> response = call.execute();
+
+            return response.isSuccess();
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+
+            return false;
+        }
+    }
+
+    private Boolean trackRoom(RoomService service, String auth, Integer userId, Integer roomId) {
+
+        Call<Void> call = service.trackRoom(auth, userId, roomId);
+
+        try {
+
+            Response<Void> response = call.execute();
+
+            return response.isSuccess();
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+
+            return false;
         }
     }
 }

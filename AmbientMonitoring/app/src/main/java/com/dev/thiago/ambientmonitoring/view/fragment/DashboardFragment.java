@@ -79,9 +79,9 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
     Timer weatherTimer;
 
-    Float currentTemperature = (float) 0;
+    Float currentTemperature;
 
-    Float currentHumidity = (float) 0;
+    Float currentHumidity;
 
     Integer roomId;
 
@@ -110,7 +110,7 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
             public void run() {
                 sendMeasureData();
             }
-        }, 10000, 5000);
+        }, 0, 5000);
 
         weatherTimer = new Timer();
         weatherTimer.scheduleAtFixedRate(new TimerTask() {
@@ -191,26 +191,29 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
     void sendMeasureData() {
 
-        MeasureService service = RetrofitUtils.getRetrofit().create(MeasureService.class);
+        if (currentHumidity != null && currentTemperature != null) {
 
-        Realm realm = Realm.getInstance(getActivity());
+            MeasureService service = RetrofitUtils.getRetrofit().create(MeasureService.class);
 
-        Session session = realm.allObjects(Session.class).first();
+            Realm realm = Realm.getInstance(getActivity());
 
-        String auth = "Token token=" + session.getToken();
+            Session session = realm.allObjects(Session.class).first();
 
-        Measure measure = new Measure();
+            String auth = "Token token=" + session.getToken();
 
-        measure.setHumidity(currentHumidity);
+            Measure measure = new Measure();
 
-        measure.setTemperature(currentTemperature);
+            measure.setHumidity(currentHumidity);
 
-        Call<Void> call = service.postMeasure(auth, session.getUser().getId(), roomId, measure);
+            measure.setTemperature(currentTemperature);
 
-        try {
-            call.execute();
-        } catch (IOException e) {
-            e.printStackTrace();
+            Call<Void> call = service.postMeasure(auth, session.getUser().getId(), roomId, measure);
+
+            try {
+                call.execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

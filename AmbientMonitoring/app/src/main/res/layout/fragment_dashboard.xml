@@ -99,25 +99,25 @@
     </RelativeLayout>
 
 
-    <View
-        android:id="@+id/dashboard_divider"
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:layout_below="@+id/dashboard_gauge_layout"
-        android:layout_marginTop="10dp"
-        android:background="@color/colorButtonNormal" />
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/dashboard_divider"
-        android:layout_marginTop="5dp"
-        android:paddingTop="5dp">
+        android:layout_below="@+id/dashboard_gauge_layout"
+        android:layout_marginTop="10dp"
+        android:gravity="bottom">
+
+        <View
+            android:id="@+id/dashboard_divider"
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_marginBottom="5dp"
+            android:background="@color/colorButtonNormal" />
 
         <TextView
             android:id="@+id/dashboard_weather_city_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/dashboard_divider"
             android:fontFamily="sans-serif-condensed"
             android:text="Loading..."
             android:textColor="@color/primary_text"
@@ -208,7 +208,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignLeft="@+id/dashboard_weather_current_temp"
-            android:layout_alignParentBottom="true"
             android:layout_below="@+id/dashboard_weather_current_temp"
             android:layout_marginTop="2dp"
             android:gravity="bottom|left"

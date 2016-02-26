@@ -7,9 +7,9 @@
     <color name="primary_text">#FFFFFF</color>
     <color name="secondary_text">#b3b3b3</color>
     <color name="icons">#FFFFFF</color>
-    <color name="divider">#B6B6B6</color>
     <color name="background">#000000</color>
     <color name="colorButtonNormal">#333333</color>
+    <color name="divider">@color/colorButtonNormal</color>
     <color name="measurerColor">#ffa22c</color>
     <color name="clientColor">#6dcdff</color>
 </resources>

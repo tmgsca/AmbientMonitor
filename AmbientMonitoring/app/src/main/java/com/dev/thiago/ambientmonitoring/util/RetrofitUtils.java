@@ -23,7 +23,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class RetrofitUtils {
 
-    public static final String BASE_URL = "http://emisvx-ambient-monitoring.herokuapp.com/";
+    public static final String BASE_URL = "http://192.168.2.10:3000/";
+//    public static final String BASE_URL = "http://emisvx-ambient-monitoring.herokuapp.com/";
 
     public static Retrofit getRetrofit() {
 

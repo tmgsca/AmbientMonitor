@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.dev.thiago.ambientmonitoring.model.Session;
+import com.dev.thiago.ambientmonitoring.model.User;
 
 import io.realm.Realm;
 
@@ -18,6 +19,22 @@ public class SessionUtils {
         Realm realm = Realm.getInstance(context);
 
         return !realm.allObjects(Session.class).isEmpty();
+    }
+
+    public static String getAuthHeader(Context context) {
+
+        Realm realm = Realm.getInstance(context);
+
+        Session session = realm.allObjects(Session.class).first();
+
+        return "Token token=" + session.getToken();
+    }
+
+    public static User getLoggedUser(Context context) {
+
+        Realm realm = Realm.getInstance(context);
+
+        return realm.allObjects(User.class).first();
     }
 
     public static DeviceType getDeviceType(Context context) {
