@@ -1,11 +1,5 @@
 package com.dev.thiago.ambientmonitoring.view.fragment;
 
-import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.format.DateUtils;
 import android.view.WindowManager;
@@ -13,6 +7,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.dev.thiago.ambientmonitoring.R;
+import com.dev.thiago.ambientmonitoring.SensorChangedEvent;
 import com.dev.thiago.ambientmonitoring.enums.Season;
 import com.dev.thiago.ambientmonitoring.model.Measure;
 import com.dev.thiago.ambientmonitoring.model.Room;
@@ -25,6 +20,9 @@ import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.RetrofitUtils;
 import com.dev.thiago.ambientmonitoring.util.SeasonUtils;
 import com.dev.thiago.ambientmonitoring.util.WeatherUtils;
+import com.dev.thiago.ambientmonitoring.view.BusProvider;
+import com.dev.thiago.ambientmonitoring.view.SensorService_;
+import com.squareup.otto.Subscribe;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EFragment;
@@ -44,11 +42,7 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 @EFragment(R.layout.fragment_dashboard)
-public class DashboardFragment extends GenericFragment implements SensorEventListener {
-
-    private SensorManager sensorManager;
-    private Sensor temperatureSensor;
-    private Sensor humiditySensor;
+public class DashboardFragment extends GenericFragment {
 
     @ViewById
     TextView dashboardTemperatureTextView;
@@ -96,19 +90,9 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
     Integer roomId;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
-
-        temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
-
-        humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
-    }
-
     @AfterViews
     void afterViews() {
+
         AutofitHelper.create(dashboardHumidityTextView);
     }
 
@@ -121,7 +105,9 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
         resumeTimers();
 
-        registerSensorsListeners();
+        SensorService_.intent(getActivity()).start();
+
+        BusProvider.getInstance().register(this);
 
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -137,14 +123,7 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
         weatherTimer.cancel();
         weatherTimer.purge();
 
-        sensorManager.unregisterListener(this);
         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    }
-
-    private void registerSensorsListeners() {
-        sensorManager.registerListener(this, temperatureSensor, SensorManager.SENSOR_DELAY_UI);
-
-        sensorManager.registerListener(this, humiditySensor, SensorManager.SENSOR_DELAY_UI);
     }
 
     private void setFragmentTitle() {
@@ -289,15 +268,19 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
             case SUMMER:
 
-                temperatureColor = summerParameters.getColorByTemperature(currentTemperature, getActivity());
+                if (currentTemperature != null)
+                    temperatureColor = summerParameters.getColorByTemperature(currentTemperature, getActivity());
 
-                humidityColor = summerParameters.getColorByHumidity(currentHumidity, getActivity());
+                if (currentHumidity != null)
+                    humidityColor = summerParameters.getColorByHumidity(currentHumidity, getActivity());
 
             case WINTER:
 
-                temperatureColor = summerParameters.getColorByTemperature(currentTemperature, getActivity());
+                if (currentTemperature != null)
+                    temperatureColor = summerParameters.getColorByTemperature(currentTemperature, getActivity());
 
-                humidityColor = summerParameters.getColorByHumidity(currentHumidity, getActivity());
+                if (currentHumidity != null)
+                    humidityColor = summerParameters.getColorByHumidity(currentHumidity, getActivity());
 
             default:
 
@@ -342,17 +325,17 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
         return parameters;
     }
 
-    @Override
-    public void onSensorChanged(SensorEvent event) {
+    @Subscribe
+    public void onSensorChanged(SensorChangedEvent event) {
 
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
         numberFormat.setMaximumFractionDigits(0);
         numberFormat.setMinimumFractionDigits(0);
 
-        if (event.sensor.equals(temperatureSensor)) {
+        if (event.getTemperature() != null) {
 
-            Float temperature = event.values[0];
+            Float temperature = event.getTemperature();
 
             DecimalFormat decimalFormat = new DecimalFormat("##.#");
 
@@ -362,7 +345,7 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
             dashboardTemperatureTextView.setText(roundedTemp.toString() + ".");
 
-            String decimal = String.valueOf(event.values[0]);
+            String decimal = String.valueOf(event.getTemperature());
 
             try {
 
@@ -377,9 +360,9 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
             currentTemperature = temperature;
 
-        } else {
+        } else if (event.getHumidity() != null) {
 
-            Float humidity = event.values[0];
+            Float humidity = event.getHumidity();
 
             dashboardHumidityTextView.setText(numberFormat.format(humidity) + "%");
 
@@ -387,10 +370,5 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
         }
 
         updateColorsByMeasuredData();
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 }

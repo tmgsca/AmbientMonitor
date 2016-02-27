@@ -207,7 +207,7 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
         progressDialog.dismiss();
 
-        activity.showDashboardFragment();
+        activity.showDashboardFragment(false);
     }
 
     private Boolean untrackRoom(RoomService service, String auth, Integer userId, Integer roomId) {

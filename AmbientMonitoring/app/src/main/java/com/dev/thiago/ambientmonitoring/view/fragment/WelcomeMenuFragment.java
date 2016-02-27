@@ -26,7 +26,7 @@ public class WelcomeMenuFragment extends GenericFragment {
 
         SessionUtils.setDeviceType(activity, DeviceType.CLIENT);
 
-        activity.showRoomsMeasuresFragment();
+        activity.showRoomsMeasuresFragment(true);
     }
 
     @Click
@@ -34,6 +34,6 @@ public class WelcomeMenuFragment extends GenericFragment {
 
         SessionUtils.setDeviceType(activity, DeviceType.MEASURER);
 
-        activity.showRoomsFragment();
+        activity.showRoomsFragment(true);
     }
 }

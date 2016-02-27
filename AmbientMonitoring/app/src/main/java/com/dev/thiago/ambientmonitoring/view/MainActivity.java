@@ -1,6 +1,7 @@
 package com.dev.thiago.ambientmonitoring.view;
 
 import android.app.Fragment;
+import android.app.FragmentTransaction;
 
 import com.dev.thiago.ambientmonitoring.GenericActivity;
 import com.dev.thiago.ambientmonitoring.R;
@@ -19,7 +20,9 @@ import com.dev.thiago.ambientmonitoring.view.fragment.WelcomeMenuFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.WelcomeMenuFragment_;
 
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.OptionsMenu;
 
+@OptionsMenu(R.menu.menu_rooms)
 @EActivity(R.layout.activity_main)
 public class MainActivity extends GenericActivity {
 
@@ -28,41 +31,42 @@ public class MainActivity extends GenericActivity {
         super.onStart();
 
         setupInitialFragment();
+
     }
 
-    public void showRoomsFragment() {
+    public void showRoomsFragment(Boolean isAddBackstack) {
 
         RoomsFragment roomsFragment = RoomsFragment_.builder().build();
 
-        switchFragment(roomsFragment);
+        switchFragment(roomsFragment, isAddBackstack);
     }
 
-    public void showWelcomeFragment() {
+    public void showWelcomeFragment(Boolean isAddBackstack) {
 
         WelcomeFragment welcomeFragment = WelcomeFragment_.builder().build();
 
-        getFragmentManager().beginTransaction().replace(R.id.main_activity_fragment_container, welcomeFragment).commit();
+        switchFragment(welcomeFragment, isAddBackstack);
     }
 
-    public void showWelcomeMenuFragment() {
+    public void showWelcomeMenuFragment(Boolean isAddBackstack) {
 
         WelcomeMenuFragment welcomeMenuFragment = WelcomeMenuFragment_.builder().build();
 
-        getFragmentManager().beginTransaction().replace(R.id.main_activity_fragment_container, welcomeMenuFragment).commit();
+        switchFragment(welcomeMenuFragment, isAddBackstack);
     }
 
-    public void showRoomsMeasuresFragment() {
+    public void showRoomsMeasuresFragment(Boolean isAddBackstack) {
 
         RoomsMeasuresFragment roomsMeasuresFragment = RoomsMeasuresFragment_.builder().build();
 
-        switchFragment(roomsMeasuresFragment);
+        switchFragment(roomsMeasuresFragment, isAddBackstack);
     }
 
-    public void showDashboardFragment() {
+    public void showDashboardFragment(Boolean isAddBackstack) {
 
         DashboardFragment dashboardFragment = DashboardFragment_.builder().build();
 
-        getFragmentManager().beginTransaction().replace(R.id.main_activity_fragment_container, dashboardFragment).commit();
+        switchFragment(dashboardFragment, isAddBackstack);
     }
 
     private void setupInitialFragment() {
@@ -73,32 +77,39 @@ public class MainActivity extends GenericActivity {
 
             if (deviceType == null) {
 
-                showWelcomeMenuFragment();
+                showWelcomeMenuFragment(false);
 
             } else if (deviceType == DeviceType.MEASURER) {
 
                 if (MeasurerUtils.isAttached(this)) {
 
-                    showDashboardFragment();
+                    showDashboardFragment(false);
 
                 } else {
 
-                    showRoomsFragment();
+                    showRoomsFragment(false);
                 }
 
             } else {
 
-                showRoomsMeasuresFragment();
+                showRoomsMeasuresFragment(false);
             }
 
         } else {
 
-            showWelcomeFragment();
+            showWelcomeFragment(false);
         }
     }
 
-    private void switchFragment(Fragment fragment) {
+    private void switchFragment(Fragment fragment, Boolean isAddBackstack) {
 
-        getFragmentManager().beginTransaction().replace(R.id.main_activity_fragment_container, fragment).addToBackStack(null).commit();
+        FragmentTransaction ft = getFragmentManager().beginTransaction().replace(R.id.main_activity_fragment_container, fragment);
+
+        if (isAddBackstack) {
+
+            ft.addToBackStack(null);
+        }
+
+        ft.commit();
     }
 }

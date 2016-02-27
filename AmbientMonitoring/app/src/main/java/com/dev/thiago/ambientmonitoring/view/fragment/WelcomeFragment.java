@@ -106,7 +106,7 @@ public class WelcomeFragment extends GenericFragment {
 
         realm.commitTransaction();
 
-        activity.showWelcomeMenuFragment();
+        activity.showWelcomeMenuFragment(false);
     }
 
     void loginRequestFailed(Response<Session> response) {

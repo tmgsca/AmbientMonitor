@@ -17,7 +17,6 @@ import org.androidannotations.annotations.RootContext;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.Sort;
 
 /**
  * Created by thiago on 23/02/16.
