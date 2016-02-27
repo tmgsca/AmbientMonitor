@@ -6,19 +6,24 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.text.format.DateUtils;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.dev.thiago.ambientmonitoring.R;
+import com.dev.thiago.ambientmonitoring.enums.Season;
 import com.dev.thiago.ambientmonitoring.model.Measure;
 import com.dev.thiago.ambientmonitoring.model.Room;
+import com.dev.thiago.ambientmonitoring.model.SeasonParameters;
 import com.dev.thiago.ambientmonitoring.model.Session;
 import com.dev.thiago.ambientmonitoring.model.WeatherWrapper;
 import com.dev.thiago.ambientmonitoring.service.MeasureService;
 import com.dev.thiago.ambientmonitoring.service.WeatherService;
 import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.RetrofitUtils;
+import com.dev.thiago.ambientmonitoring.util.SeasonUtils;
 import com.dev.thiago.ambientmonitoring.util.WeatherUtils;
 
 import org.androidannotations.annotations.AfterViews;
@@ -75,6 +80,12 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
     @ViewById
     TextView dashboardWeatherUpdated;
 
+    @ViewById
+    ImageView dashboardTemperatureImageView;
+
+    @ViewById
+    ImageView dashboardHumidityImageView;
+
     Timer timer;
 
     Timer weatherTimer;
@@ -84,6 +95,17 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
     Float currentHumidity;
 
     Integer roomId;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
+
+        temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+
+        humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+    }
 
     @AfterViews
     void afterViews() {
@@ -95,14 +117,53 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
         super.onResume();
 
+        setFragmentTitle();
+
+        resumeTimers();
+
+        registerSensorsListeners();
+
+        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    @Override
+    public void onPause() {
+
+        super.onPause();
+
+        timer.cancel();
+        timer.purge();
+
+        weatherTimer.cancel();
+        weatherTimer.purge();
+
+        sensorManager.unregisterListener(this);
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    private void registerSensorsListeners() {
+        sensorManager.registerListener(this, temperatureSensor, SensorManager.SENSOR_DELAY_UI);
+
+        sensorManager.registerListener(this, humiditySensor, SensorManager.SENSOR_DELAY_UI);
+    }
+
+    private void setFragmentTitle() {
+
+        Room room = getRoom();
+
+        setTitle(room.getName());
+    }
+
+    private Room getRoom() {
+
         roomId = MeasurerUtils.getTrackedRoomId(getActivity());
 
         Realm realm = Realm.getInstance(getActivity());
 
-        Room room = realm.where(Room.class).equalTo("id", roomId).findFirst();
+        return realm.where(Room.class).equalTo("id", roomId).findFirst();
+    }
 
-        setTitle(room.getName());
-
+    private void resumeTimers() {
         timer = new Timer();
 
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -113,6 +174,7 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
         }, 0, 5000);
 
         weatherTimer = new Timer();
+
         weatherTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -126,12 +188,6 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
                 updateWeather();
             }
         }, 0);
-
-        sensorManager.registerListener(this, temperatureSensor, SensorManager.SENSOR_DELAY_UI);
-
-        sensorManager.registerListener(this, humiditySensor, SensorManager.SENSOR_DELAY_UI);
-
-        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     private void updateWeather() {
@@ -217,30 +273,73 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
         }
     }
 
-    @Override
-    public void onPause() {
+    private void updateColorsByMeasuredData() {
 
-        super.onPause();
+        Room room = getRoom();
 
-        timer.cancel();
-        timer.purge();
+        SeasonParameters summerParameters = getSummerParameters(room);
 
-        weatherTimer.cancel();
-        weatherTimer.purge();
+        SeasonParameters winterParameters = getWinterParameters(room);
 
-        sensorManager.unregisterListener(this);
-        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        Integer temperatureColor;
+
+        Integer humidityColor;
+
+        switch (SeasonUtils.getSeason()) {
+
+            case SUMMER:
+
+                temperatureColor = summerParameters.getColorByTemperature(currentTemperature, getActivity());
+
+                humidityColor = summerParameters.getColorByHumidity(currentHumidity, getActivity());
+
+            case WINTER:
+
+                temperatureColor = summerParameters.getColorByTemperature(currentTemperature, getActivity());
+
+                humidityColor = summerParameters.getColorByHumidity(currentHumidity, getActivity());
+
+            default:
+
+                temperatureColor = ContextCompat.getColor(getActivity(), R.color.normal_color);
+
+                humidityColor = ContextCompat.getColor(getActivity(), R.color.normal_color);
+        }
+
+        dashboardHumidityImageView.setColorFilter(humidityColor);
+
+        dashboardTemperatureImageView.setColorFilter(temperatureColor);
+
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    private SeasonParameters getSummerParameters(Room room) {
 
-        sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
+        SeasonParameters parameters = new SeasonParameters(Season.SUMMER);
 
-        temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+        parameters.setMaxTemp(room.getMaxSummerTemp());
 
-        humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+        parameters.setMinTemp(room.getMinSummerTemp());
+
+        parameters.setMaxHumidity(room.getMaxSummerHumidity());
+
+        parameters.setMinHumidity(room.getMinSummerHumidity());
+
+        return parameters;
+    }
+
+    private SeasonParameters getWinterParameters(Room room) {
+
+        SeasonParameters parameters = new SeasonParameters(Season.WINTER);
+
+        parameters.setMaxTemp(room.getMaxWinterTemp());
+
+        parameters.setMinTemp(room.getMinWinterTemp());
+
+        parameters.setMaxHumidity(room.getMaxWinterHumidity());
+
+        parameters.setMinHumidity(room.getMinWinterHumidity());
+
+        return parameters;
     }
 
     @Override
@@ -286,6 +385,8 @@ public class DashboardFragment extends GenericFragment implements SensorEventLis
 
             currentHumidity = humidity;
         }
+
+        updateColorsByMeasuredData();
     }
 
     @Override
