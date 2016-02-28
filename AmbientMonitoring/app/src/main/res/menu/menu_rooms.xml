@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/action_favorite"
+        android:id="@+id/action_settings"
         android:icon="@drawable/settings"
         android:showAsAction="ifRoom"
         android:title="Profile" />

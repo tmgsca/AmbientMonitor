@@ -10,10 +10,6 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service
-            android:name=".view.SensorService_"
-            android:enabled="true"
-            android:label="@string/app_name" />
         <activity
             android:name="com.dev.thiago.ambientmonitoring.view.MainActivity_"
             android:label="@string/title_activity_main"

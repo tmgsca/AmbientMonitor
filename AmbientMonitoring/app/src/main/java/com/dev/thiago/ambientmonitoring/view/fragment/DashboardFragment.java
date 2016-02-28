@@ -1,5 +1,6 @@
 package com.dev.thiago.ambientmonitoring.view.fragment;
 
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.format.DateUtils;
 import android.view.WindowManager;
@@ -9,29 +10,24 @@ import android.widget.TextView;
 import com.dev.thiago.ambientmonitoring.R;
 import com.dev.thiago.ambientmonitoring.SensorChangedEvent;
 import com.dev.thiago.ambientmonitoring.enums.Season;
-import com.dev.thiago.ambientmonitoring.model.Measure;
 import com.dev.thiago.ambientmonitoring.model.Room;
 import com.dev.thiago.ambientmonitoring.model.SeasonParameters;
-import com.dev.thiago.ambientmonitoring.model.Session;
 import com.dev.thiago.ambientmonitoring.model.WeatherWrapper;
-import com.dev.thiago.ambientmonitoring.service.MeasureService;
 import com.dev.thiago.ambientmonitoring.service.WeatherService;
+import com.dev.thiago.ambientmonitoring.util.BusProvider;
 import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.RetrofitUtils;
 import com.dev.thiago.ambientmonitoring.util.SeasonUtils;
 import com.dev.thiago.ambientmonitoring.util.WeatherUtils;
-import com.dev.thiago.ambientmonitoring.view.BusProvider;
-import com.dev.thiago.ambientmonitoring.view.SensorService_;
 import com.squareup.otto.Subscribe;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import java.io.IOException;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -97,6 +93,14 @@ public class DashboardFragment extends GenericFragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+
+        super.onCreate(savedInstanceState);
+
+        BusProvider.getInstance().register(this);
+    }
+
+    @Override
     public void onResume() {
 
         super.onResume();
@@ -105,9 +109,6 @@ public class DashboardFragment extends GenericFragment {
 
         resumeTimers();
 
-        SensorService_.intent(getActivity()).start();
-
-        BusProvider.getInstance().register(this);
 
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -144,13 +145,6 @@ public class DashboardFragment extends GenericFragment {
 
     private void resumeTimers() {
         timer = new Timer();
-
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                sendMeasureData();
-            }
-        }, 0, 5000);
 
         weatherTimer = new Timer();
 
@@ -189,7 +183,7 @@ public class DashboardFragment extends GenericFragment {
     }
 
     @UiThread
-    void updateWeatherLabels(WeatherWrapper wrapper) {
+    protected void updateWeatherLabels(WeatherWrapper wrapper) {
 
         NumberFormat format = NumberFormat.getNumberInstance();
         format.setMaximumFractionDigits(1);
@@ -222,34 +216,6 @@ public class DashboardFragment extends GenericFragment {
 
 
         dashboardWeatherUpdated.setText(updatedAt);
-    }
-
-    void sendMeasureData() {
-
-        if (currentHumidity != null && currentTemperature != null) {
-
-            MeasureService service = RetrofitUtils.getRetrofit().create(MeasureService.class);
-
-            Realm realm = Realm.getInstance(getActivity());
-
-            Session session = realm.allObjects(Session.class).first();
-
-            String auth = "Token token=" + session.getToken();
-
-            Measure measure = new Measure();
-
-            measure.setHumidity(currentHumidity);
-
-            measure.setTemperature(currentTemperature);
-
-            Call<Void> call = service.postMeasure(auth, session.getUser().getId(), roomId, measure);
-
-            try {
-                call.execute();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void updateColorsByMeasuredData() {
@@ -328,18 +294,9 @@ public class DashboardFragment extends GenericFragment {
     @Subscribe
     public void onSensorChanged(SensorChangedEvent event) {
 
-        NumberFormat numberFormat = NumberFormat.getNumberInstance();
-
-        numberFormat.setMaximumFractionDigits(0);
-        numberFormat.setMinimumFractionDigits(0);
-
         if (event.getTemperature() != null) {
 
             Float temperature = event.getTemperature();
-
-            DecimalFormat decimalFormat = new DecimalFormat("##.#");
-
-            decimalFormat.setRoundingMode(RoundingMode.DOWN);
 
             Integer roundedTemp = (int) Math.floor(temperature.doubleValue());
 
@@ -349,7 +306,7 @@ public class DashboardFragment extends GenericFragment {
 
             try {
 
-                decimal = decimal.substring(decimal.indexOf(".")).substring(1);
+                decimal = decimal.substring(decimal.indexOf(".")).substring(1, 2);
 
                 dashboardTemperatureDecimalTextView.setText(decimal);
 
@@ -359,8 +316,15 @@ public class DashboardFragment extends GenericFragment {
             }
 
             currentTemperature = temperature;
+        }
 
-        } else if (event.getHumidity() != null) {
+        if (event.getHumidity() != null) {
+
+            NumberFormat numberFormat = NumberFormat.getNumberInstance();
+
+            numberFormat.setMaximumFractionDigits(0);
+
+            numberFormat.setMinimumFractionDigits(0);
 
             Float humidity = event.getHumidity();
 
@@ -371,4 +335,5 @@ public class DashboardFragment extends GenericFragment {
 
         updateColorsByMeasuredData();
     }
+
 }

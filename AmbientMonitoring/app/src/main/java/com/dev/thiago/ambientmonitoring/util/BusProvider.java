@@ -1,4 +1,4 @@
-package com.dev.thiago.ambientmonitoring.view;
+package com.dev.thiago.ambientmonitoring.util;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
