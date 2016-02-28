@@ -16,6 +16,8 @@ import com.dev.thiago.ambientmonitoring.view.fragment.RoomsFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.RoomsFragment_;
 import com.dev.thiago.ambientmonitoring.view.fragment.RoomsMeasuresFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.RoomsMeasuresFragment_;
+import com.dev.thiago.ambientmonitoring.view.fragment.SettingsFragment;
+import com.dev.thiago.ambientmonitoring.view.fragment.SettingsFragment_;
 import com.dev.thiago.ambientmonitoring.view.fragment.WelcomeFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.WelcomeFragment_;
 import com.dev.thiago.ambientmonitoring.view.fragment.WelcomeMenuFragment;
@@ -23,10 +25,8 @@ import com.dev.thiago.ambientmonitoring.view.fragment.WelcomeMenuFragment_;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.OptionsItem;
-import org.androidannotations.annotations.OptionsMenu;
 
-@OptionsMenu(R.menu.menu_rooms)
+
 @EActivity(R.layout.activity_main)
 public class MainActivity extends GenericActivity {
 
@@ -64,12 +64,6 @@ public class MainActivity extends GenericActivity {
         sensorListener.stop();
     }
 
-    @OptionsItem(R.id.action_settings)
-    void showSettings() {
-
-        showSettingsFragment(true);
-    }
-
     public void showRoomsFragment(Boolean isAddBackstack) {
 
         RoomsFragment roomsFragment = RoomsFragment_.builder().build();
@@ -105,8 +99,11 @@ public class MainActivity extends GenericActivity {
         switchFragment(dashboardFragment, isAddBackstack);
     }
 
-    public void showSettingsFragment(Boolean isBackstack) {
+    public void showSettingsFragment(Boolean isAddBackstack) {
 
+        SettingsFragment fragment = SettingsFragment_.builder().build();
+
+        switchFragment(fragment, isAddBackstack);
     }
 
     private void setupInitialFragment() {

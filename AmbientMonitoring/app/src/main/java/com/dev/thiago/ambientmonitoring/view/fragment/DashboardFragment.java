@@ -1,6 +1,5 @@
 package com.dev.thiago.ambientmonitoring.view.fragment;
 
-import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.format.DateUtils;
 import android.view.WindowManager;
@@ -19,11 +18,13 @@ import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.RetrofitUtils;
 import com.dev.thiago.ambientmonitoring.util.SeasonUtils;
 import com.dev.thiago.ambientmonitoring.util.WeatherUtils;
+import com.dev.thiago.ambientmonitoring.view.MainActivity;
 import com.squareup.otto.Subscribe;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.OptionsItem;
+import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
@@ -38,6 +39,7 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 @EFragment(R.layout.fragment_dashboard)
+@OptionsMenu(R.menu.menu_rooms)
 public class DashboardFragment extends GenericFragment {
 
     @ViewById
@@ -93,22 +95,15 @@ public class DashboardFragment extends GenericFragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-
-        super.onCreate(savedInstanceState);
-
-        BusProvider.getInstance().register(this);
-    }
-
-    @Override
     public void onResume() {
 
         super.onResume();
 
+        BusProvider.getInstance().register(this);
+
         setFragmentTitle();
 
         resumeTimers();
-
 
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -117,6 +112,8 @@ public class DashboardFragment extends GenericFragment {
     public void onPause() {
 
         super.onPause();
+
+        BusProvider.getInstance().unregister(this);
 
         timer.cancel();
         timer.purge();
@@ -334,6 +331,15 @@ public class DashboardFragment extends GenericFragment {
         }
 
         updateColorsByMeasuredData();
+    }
+
+
+    @OptionsItem(R.id.action_settings)
+    void showSettings() {
+
+        MainActivity activity = (MainActivity) getActivity();
+
+        activity.showSettingsFragment(true);
     }
 
 }
