@@ -1,7 +1,6 @@
 package com.dev.thiago.ambientmonitoring.view.fragment;
 
 import android.support.v4.content.ContextCompat;
-import android.text.format.DateUtils;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,9 +13,11 @@ import com.dev.thiago.ambientmonitoring.model.SeasonParameters;
 import com.dev.thiago.ambientmonitoring.model.WeatherWrapper;
 import com.dev.thiago.ambientmonitoring.service.WeatherService;
 import com.dev.thiago.ambientmonitoring.util.BusProvider;
+import com.dev.thiago.ambientmonitoring.util.DeviceType;
 import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.RetrofitUtils;
 import com.dev.thiago.ambientmonitoring.util.SeasonUtils;
+import com.dev.thiago.ambientmonitoring.util.SessionUtils;
 import com.dev.thiago.ambientmonitoring.util.WeatherUtils;
 import com.dev.thiago.ambientmonitoring.view.MainActivity;
 import com.squareup.otto.Subscribe;
@@ -91,7 +92,11 @@ public class DashboardFragment extends GenericFragment {
     @AfterViews
     void afterViews() {
 
+        SessionUtils.setDeviceType(getActivity(), DeviceType.MEASURER);
+
         AutofitHelper.create(dashboardHumidityTextView);
+
+        setFragmentTitle();
     }
 
     @Override
@@ -100,8 +105,6 @@ public class DashboardFragment extends GenericFragment {
         super.onResume();
 
         BusProvider.getInstance().register(this);
-
-        setFragmentTitle();
 
         resumeTimers();
 
@@ -126,16 +129,22 @@ public class DashboardFragment extends GenericFragment {
 
     private void setFragmentTitle() {
 
-        Room room = getRoom();
+        Realm realm = Realm.getInstance(getActivity());
 
-        setTitle(room.getName());
+        Room room = getRoom(realm);
+
+        if (room != null) {
+
+            setTitle(room.getName());
+
+            realm.close();
+
+        }
     }
 
-    private Room getRoom() {
+    private Room getRoom(Realm realm) {
 
         roomId = MeasurerUtils.getTrackedRoomId(getActivity());
-
-        Realm realm = Realm.getInstance(getActivity());
 
         return realm.where(Room.class).equalTo("id", roomId).findFirst();
     }
@@ -208,16 +217,13 @@ public class DashboardFragment extends GenericFragment {
 
             dashboardWeatherCurrentWeather.setText(wrapper.getWeathers().get(0).getMain().toLowerCase());
         }
-
-        String updatedAt = DateUtils.getRelativeDateTimeString(getActivity(), wrapper.getDate().getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE).toString();
-
-
-        dashboardWeatherUpdated.setText(updatedAt);
     }
 
     private void updateColorsByMeasuredData() {
 
-        Room room = getRoom();
+        Realm realm = Realm.getInstance(getActivity());
+
+        Room room = getRoom(realm);
 
         SeasonParameters summerParameters = getSummerParameters(room);
 
@@ -256,6 +262,7 @@ public class DashboardFragment extends GenericFragment {
 
         dashboardTemperatureImageView.setColorFilter(temperatureColor);
 
+        realm.close();
     }
 
     private SeasonParameters getSummerParameters(Room room) {

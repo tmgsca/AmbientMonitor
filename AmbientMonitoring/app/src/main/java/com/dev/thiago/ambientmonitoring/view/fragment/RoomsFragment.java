@@ -65,7 +65,11 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
         String auth = SessionUtils.getAuthHeader(getActivity());
 
-        Integer userId = SessionUtils.getLoggedUser(getActivity()).getId();
+        Realm realm = Realm.getInstance(getActivity());
+
+        Integer userId = SessionUtils.getLoggedUser(getActivity(), realm).getId();
+
+        realm.close();
 
         Call<List<Room>> call = service.getRooms(auth, userId);
 
@@ -110,6 +114,8 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
         realm.copyToRealmOrUpdate(response.body());
 
         realm.commitTransaction();
+
+        realm.close();
 
         adapter.notifyDataSetChanged();
     }
@@ -165,7 +171,12 @@ public class RoomsFragment extends GenericFragment implements DialogInterface.On
 
         final RoomService service = RetrofitUtils.getRetrofit().create(RoomService.class);
         final String auth = SessionUtils.getAuthHeader(getActivity());
-        final Integer userId = SessionUtils.getLoggedUser(getActivity()).getId();
+
+        Realm realm = Realm.getInstance(getActivity());
+
+        final Integer userId = SessionUtils.getLoggedUser(getActivity(), realm).getId();
+
+        realm.close();
 
         if (detach) {
 

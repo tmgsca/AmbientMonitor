@@ -1,6 +1,7 @@
 package com.dev.thiago.ambientmonitoring.view;
 
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 
 import com.dev.thiago.ambientmonitoring.GenericActivity;
@@ -12,11 +13,11 @@ import com.dev.thiago.ambientmonitoring.util.MeasurerUtils;
 import com.dev.thiago.ambientmonitoring.util.SessionUtils;
 import com.dev.thiago.ambientmonitoring.view.fragment.DashboardFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.DashboardFragment_;
+import com.dev.thiago.ambientmonitoring.view.fragment.MeasurerSettingsFragment_;
 import com.dev.thiago.ambientmonitoring.view.fragment.RoomsFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.RoomsFragment_;
 import com.dev.thiago.ambientmonitoring.view.fragment.RoomsMeasuresFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.RoomsMeasuresFragment_;
-import com.dev.thiago.ambientmonitoring.view.fragment.SettingsFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.SettingsFragment_;
 import com.dev.thiago.ambientmonitoring.view.fragment.WelcomeFragment;
 import com.dev.thiago.ambientmonitoring.view.fragment.WelcomeFragment_;
@@ -64,6 +65,11 @@ public class MainActivity extends GenericActivity {
         sensorListener.stop();
     }
 
+    public void stopSensorListener() {
+
+        sensorListener.stop();
+    }
+
     public void showRoomsFragment(Boolean isAddBackstack) {
 
         RoomsFragment roomsFragment = RoomsFragment_.builder().build();
@@ -101,7 +107,16 @@ public class MainActivity extends GenericActivity {
 
     public void showSettingsFragment(Boolean isAddBackstack) {
 
-        SettingsFragment fragment = SettingsFragment_.builder().build();
+        Fragment fragment;
+
+        if (SessionUtils.getDeviceType(this) == DeviceType.MEASURER) {
+
+            fragment = MeasurerSettingsFragment_.builder().build();
+
+        } else {
+
+            fragment = SettingsFragment_.builder().build();
+        }
 
         switchFragment(fragment, isAddBackstack);
     }
@@ -145,8 +160,28 @@ public class MainActivity extends GenericActivity {
         if (isAddBackstack) {
 
             ft.addToBackStack(null);
+
+        } else {
+
+            FragmentManager fm = this.getFragmentManager();
+            for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
+                fm.popBackStack();
+            }
         }
 
         ft.commit();
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        if (getFragmentManager().getBackStackEntryCount() > 0) {
+
+            getFragmentManager().popBackStack();
+
+        } else {
+
+            super.onBackPressed();
+        }
     }
 }

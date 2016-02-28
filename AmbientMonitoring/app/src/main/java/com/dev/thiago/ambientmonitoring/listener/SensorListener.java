@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.realm.Realm;
 import retrofit2.Call;
 
 /**
@@ -86,11 +87,17 @@ public class SensorListener implements SensorEventListener {
 
     public void stop() {
 
-        sensorManager.unregisterListener(this);
+        if (sensorManager != null) {
 
-        timer.cancel();
+            sensorManager.unregisterListener(this);
+        }
 
-        timer.purge();
+        if (timer != null) {
+
+            timer.cancel();
+
+            timer.purge();
+        }
     }
 
     private void registerSensorsListeners() {
@@ -102,8 +109,6 @@ public class SensorListener implements SensorEventListener {
 
     @Background
     protected void sendMeasureData() {
-
-        sendBus((float) 20.232421232132412, (float) 64.99988776323);
 
         if (currentHumidity != null && currentTemperature != null) {
 
@@ -117,7 +122,11 @@ public class SensorListener implements SensorEventListener {
 
             measure.setTemperature(currentTemperature);
 
-            Call<Void> call = service.postMeasure(auth, SessionUtils.getLoggedUser(context).getId(), roomId, measure);
+            Realm realm = Realm.getInstance(context);
+
+            Call<Void> call = service.postMeasure(auth, SessionUtils.getLoggedUser(context, realm).getId(), roomId, measure);
+
+            realm.close();
 
             try {
 

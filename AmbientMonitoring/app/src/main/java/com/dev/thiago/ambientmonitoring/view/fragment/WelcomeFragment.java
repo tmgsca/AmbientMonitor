@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.graphics.Typeface;
 import android.text.method.PasswordTransformationMethod;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.dev.thiago.ambientmonitoring.R;
 import com.dev.thiago.ambientmonitoring.model.Session;
@@ -102,9 +103,15 @@ public class WelcomeFragment extends GenericFragment {
 
         realm.beginTransaction();
 
-        realm.copyToRealmOrUpdate(response.body());
+        Session session = response.body();
+
+        session.getUser().setSession(session);
+
+        realm.copyToRealmOrUpdate(session);
 
         realm.commitTransaction();
+
+        realm.close();
 
         activity.showWelcomeMenuFragment(false);
     }
@@ -112,5 +119,7 @@ public class WelcomeFragment extends GenericFragment {
     void loginRequestFailed(Response<Session> response) {
 
         dialog.hide();
+
+        Toast.makeText(activity, "Something went wrong", Toast.LENGTH_SHORT).show();
     }
 }

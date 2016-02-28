@@ -18,7 +18,11 @@ public class SessionUtils {
 
         Realm realm = Realm.getInstance(context);
 
-        return !realm.allObjects(Session.class).isEmpty();
+        Boolean isLoggedIn = !realm.allObjects(Session.class).isEmpty();
+
+        realm.close();
+
+        return isLoggedIn;
     }
 
     public static String getAuthHeader(Context context) {
@@ -27,14 +31,18 @@ public class SessionUtils {
 
         Session session = realm.allObjects(Session.class).first();
 
-        return "Token token=" + session.getToken();
+        String auth = "Token token=" + session.getToken();
+
+        realm.close();
+
+        return auth;
     }
 
-    public static User getLoggedUser(Context context) {
+    public static User getLoggedUser(Context context, Realm realm) {
 
-        Realm realm = Realm.getInstance(context);
+        User user = realm.allObjects(User.class).first();
 
-        return realm.allObjects(User.class).first();
+        return user;
     }
 
     public static DeviceType getDeviceType(Context context) {
@@ -65,5 +73,25 @@ public class SessionUtils {
         editor.putString("device_type", deviceType.toString());
 
         editor.apply();
+    }
+
+    public static void clearDeviceType(Context context) {
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.remove("device_type");
+
+        editor.apply();
+    }
+
+    public static void clearPreferences(Context context) {
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.clear().apply();
     }
 }

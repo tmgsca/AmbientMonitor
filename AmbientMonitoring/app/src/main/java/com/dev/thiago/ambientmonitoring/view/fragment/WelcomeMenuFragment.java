@@ -17,7 +17,11 @@ public class WelcomeMenuFragment extends GenericFragment {
 
     @AfterViews
     void afterViews() {
+
         activity = (MainActivity) getActivity();
+
+        SessionUtils.clearDeviceType(activity);
+
         setTitle("What is this device?");
     }
 

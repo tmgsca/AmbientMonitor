@@ -4,6 +4,7 @@ package com.dev.thiago.ambientmonitoring.view.fragment;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.dev.thiago.ambientmonitoring.R;
 import com.dev.thiago.ambientmonitoring.model.Room;
@@ -70,6 +71,8 @@ public class RoomsMeasuresFragment extends Fragment {
 
         Session session = realm.allObjects(Session.class).first();
 
+        realm.close();
+
         String auth = "Token token=" + session.getToken();
 
         Integer userId = session.getUser().getId();
@@ -118,12 +121,16 @@ public class RoomsMeasuresFragment extends Fragment {
 
         realm.commitTransaction();
 
+        realm.close();
+
         adapter.notifyDataSetChanged();
     }
 
     void requestRoomsFailed(Response<List<Room>> response) {
 
         dialog.hide();
+
+        Toast.makeText(activity, "Something went wrong", Toast.LENGTH_SHORT).show();
     }
 
     @ItemClick
